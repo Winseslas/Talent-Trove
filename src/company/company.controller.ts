@@ -7,16 +7,20 @@ import {
   Param,
   Put,
   Delete,
+  Query,
 } from '@nestjs/common';
 import { Company } from './schemas/company.schema';
+import { Query as ExpressQuery } from 'express-serve-static-core';
 
 @Controller('companies')
 export class CompanyController {
   constructor(private companyService: CompanyService) {}
 
   @Get()
-  async getAllCompanies(): Promise<Company[]> {
-    return this.companyService.findAll();
+  async getAllCompanies(
+    @Query() query: ExpressQuery,
+  ): Promise<{ companies: Company[]; total: number }> {
+    return this.companyService.findAll(query);
   }
 
   @Get(':id')

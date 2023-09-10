@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Company, CompanyDocument } from './schemas/company.schema';
+import { Query } from 'express-serve-static-core';
 
 @Injectable()
 export class CompanyService {
@@ -10,12 +11,33 @@ export class CompanyService {
     private readonly CompanyModel: Model<CompanyDocument>,
   ) {}
 
-  async findAll(): Promise<Company[]> {
-    return this.CompanyModel.find().exec();
+  async findAll(
+    query: Query,
+  ): Promise<{ companies: Company[]; total: number }> {
+    try {
+      const keyword = query.keyword || '';
+      const page = query.page ? Number(query.page) : 1;
+      const pageSize = 5;
+
+      const companies = await this.CompanyModel.find({
+        name: { $regex: keyword, $options: 'i' },
+      })
+        .skip((page - 1) * pageSize)
+        .limit(pageSize)
+        .exec();
+
+      const total = await this.CompanyModel.countDocuments({
+        name: { $regex: keyword, $options: 'i' },
+      });
+
+      return { companies, total };
+    } catch (error) {
+      throw new Error('An error occurred while fetching companies.');
+    }
   }
 
   async findById(id: string): Promise<Company | null> {
-    const company = this.CompanyModel.findById(id);
+    const company = this.CompanyModel.findById(id).exec();
     if (!company) {
       throw new NotFoundException(`Company with id ${id} not found`);
     }
