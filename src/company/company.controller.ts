@@ -10,7 +10,9 @@ import {
   Query,
 } from '@nestjs/common';
 import { Company } from './schemas/company.schema';
-import { Query as ExpressQuery } from 'express-serve-static-core';
+import { UpdateCompanyDTO } from './dto/updateCompany.dto';
+import CreateCompanyDTO from './dto/createCompany.dto';
+import SearchCompanyDTO from './dto/searchCompany.dto';
 
 @Controller('companies')
 export class CompanyController {
@@ -18,7 +20,7 @@ export class CompanyController {
 
   @Get()
   async getAllCompanies(
-    @Query() query: ExpressQuery,
+    @Query() query: SearchCompanyDTO,
   ): Promise<{ companies: Company[]; total: number }> {
     return this.companyService.findAll(query);
   }
@@ -29,14 +31,14 @@ export class CompanyController {
   }
 
   @Post()
-  async createCompany(@Body() company): Promise<Company> {
+  async createCompany(@Body() company: CreateCompanyDTO): Promise<Company> {
     return this.companyService.create(company);
   }
 
   @Put(':id')
   async updateCompany(
     @Param('id') id: string,
-    @Body() company,
+    @Body() company: UpdateCompanyDTO,
   ): Promise<Company | null> {
     return this.companyService.update(id, company);
   }

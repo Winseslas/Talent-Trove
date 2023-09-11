@@ -1,8 +1,13 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import mongoose, { Model } from 'mongoose';
 import { Company, CompanyDocument } from './schemas/company.schema';
-import { Query } from 'express-serve-static-core';
+import CreateCompanyDTO from './dto/createCompany.dto';
+import SearchCompanyDTO from './dto/searchCompany.dto';
 
 @Injectable()
 export class CompanyService {
@@ -11,8 +16,28 @@ export class CompanyService {
     private readonly CompanyModel: Model<CompanyDocument>,
   ) {}
 
+  private validateId(id: string): void {
+    if (!mongoose.isValidObjectId(id)) {
+      throw new BadRequestException(`Please provide a valid ID.`);
+    }
+  }
+
+  private async ensureCompanyExists(idOrName: string): Promise<Company | null> {
+    this.validateId(idOrName);
+    const company = await this.CompanyModel.findOne({
+      $or: [{ _id: idOrName }, { name: idOrName }],
+    }).exec();
+
+    if (!company) {
+      throw new NotFoundException(
+        `Company with id or name '${idOrName}' not found`,
+      );
+    }
+    return company;
+  }
+
   async findAll(
-    query: Query,
+    query: SearchCompanyDTO,
   ): Promise<{ companies: Company[]; total: number }> {
     try {
       const keyword = query.keyword || '';
@@ -37,27 +62,22 @@ export class CompanyService {
   }
 
   async findById(id: string): Promise<Company | null> {
-    const company = this.CompanyModel.findById(id).exec();
-    if (!company) {
-      throw new NotFoundException(`Company with id ${id} not found`);
-    }
+    const company = await this.ensureCompanyExists(id);
     return company;
   }
 
   async findByName(name: string): Promise<Company | null> {
-    const company = this.CompanyModel.findOne({ name }).exec();
-    if (!company) {
-      throw new NotFoundException(`Company with name ${name} not found`);
-    }
+    const company = await this.ensureCompanyExists(name);
     return company;
   }
 
-  async create(companyData: Company): Promise<Company> {
+  async create(companyData: CreateCompanyDTO): Promise<Company> {
     const createdCompany = new this.CompanyModel(companyData);
     return createdCompany.save();
   }
 
   async update(id: string, companyData: Company): Promise<Company | null> {
+    this.validateId(id);
     const existingCompany = await this.CompanyModel.findByIdAndUpdate(
       id,
       companyData,
@@ -72,6 +92,7 @@ export class CompanyService {
   }
 
   async delete(id: string): Promise<Company | null> {
+    this.validateId(id);
     const deletedCompany = await this.CompanyModel.findByIdAndDelete(id).exec();
 
     if (!deletedCompany) {
