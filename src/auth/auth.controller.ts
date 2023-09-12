@@ -12,11 +12,15 @@ import SignUpUserDTO from 'src/dto/user/signUpUser.dto';
 import SignInUserDTO from 'src/dto/user/signInUser.dto';
 import { AuthService } from './auth.service';
 import { User } from '../schemas/user.schma';
-import { AuthGuard } from './auth.guard';
+import { AuthGuard } from '../utils/auth/auth.guard';
+import { UserService } from 'src/user/user.service';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private authService: AuthService) {}
+  constructor(
+    private authService: AuthService,
+    private userService: UserService,
+  ) {}
 
   @HttpCode(HttpStatus.OK)
   @Post('signin')
@@ -31,7 +35,8 @@ export class AuthController {
 
   @UseGuards(AuthGuard)
   @Get('profile')
-  getProfile(@Request() req) {
-    console.log(req);
+  getProfile(@Request() request): Promise<User> {
+    const { id } = request.user;
+    return this.userService.findById(id);
   }
 }

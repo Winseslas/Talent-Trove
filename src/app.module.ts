@@ -6,6 +6,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { CompanyModule } from './company/company.module';
 import { AuthModule } from './auth/auth.module';
 import { UserModule } from './user/user.module';
+import { ThrottlerModule } from '@nestjs/throttler';
 
 @Module({
   imports: [
@@ -14,6 +15,12 @@ import { UserModule } from './user/user.module';
       isGlobal: true,
     }),
     MongooseModule.forRoot(process.env.API_MONGO_URL),
+    ThrottlerModule.forRoot([
+      {
+        ttl: 60000,
+        limit: 10,
+      },
+    ]),
     CompanyModule,
     AuthModule,
     UserModule,

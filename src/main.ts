@@ -1,12 +1,13 @@
-import { NestFactory } from '@nestjs/core';
-import { AppModule } from './app.module';
-import * as morgan from 'morgan';
-// import * as favicon from 'serve-favicon';
-import * as bodyParser from 'body-parser';
-import * as cors from 'cors';
-import * as express from 'express';
+import * as favicon from 'serve-favicon';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { ExpressAdapter } from '@nestjs/platform-express';
+import { NestFactory } from '@nestjs/core';
+import * as bodyParser from 'body-parser';
+import { AppModule } from './app.module';
+import * as express from 'express';
+import * as morgan from 'morgan';
+import * as cors from 'cors';
+import helmet from 'helmet';
 
 class BootstrapApp {
   private app: express.Application;
@@ -21,9 +22,29 @@ class BootstrapApp {
   }
 
   private setupMiddlewares(): void {
-    // this.app.use(favicon(__dirname + '/img/nodejs.ico'));
+    this.app.use(favicon(__dirname + '/../img/nestjs.ico'));
     this.app.use(cors());
     this.app.use(morgan('dev'));
+    this.app.use(
+      helmet({
+        crossOriginEmbedderPolicy: false,
+        contentSecurityPolicy: {
+          directives: {
+            imgSrc: [
+              `'self'`,
+              'data:',
+              'apollo-server-landing-page.cdn.apollographql.com',
+            ],
+            scriptSrc: [`'self'`, `https: 'unsafe-inline'`],
+            manifestSrc: [
+              `'self'`,
+              'apollo-server-landing-page.cdn.apollographql.com',
+            ],
+            frameSrc: [`'self'`, 'sandbox.embed.apollographql.com'],
+          },
+        },
+      }),
+    );
     this.app.use(bodyParser.json());
     this.app.use(bodyParser.urlencoded({ extended: false }));
   }
