@@ -5,9 +5,9 @@ import {
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import mongoose, { Model } from 'mongoose';
-import { Company, CompanyDocument } from './schemas/company.schema';
-import CreateCompanyDTO from './dto/createCompany.dto';
-import SearchCompanyDTO from './dto/searchCompany.dto';
+import { Company, CompanyDocument } from '../schemas/company.schema';
+import CreateCompanyDTO from '../dto/company/createCompany.dto';
+import SearchCompanyDTO from '../dto/company/searchCompany.dto';
 
 @Injectable()
 export class CompanyService {
@@ -36,7 +36,7 @@ export class CompanyService {
     return company;
   }
 
-  async findAll(
+  public async findAll(
     query: SearchCompanyDTO,
   ): Promise<{ companies: Company[]; total: number }> {
     try {
@@ -61,22 +61,25 @@ export class CompanyService {
     }
   }
 
-  async findById(id: string): Promise<Company | null> {
+  public async findById(id: string): Promise<Company | null> {
     const company = await this.ensureCompanyExists(id);
     return company;
   }
 
-  async findByName(name: string): Promise<Company | null> {
+  public async findByName(name: string): Promise<Company | null> {
     const company = await this.ensureCompanyExists(name);
     return company;
   }
 
-  async create(companyData: CreateCompanyDTO): Promise<Company> {
+  public async create(companyData: CreateCompanyDTO): Promise<Company> {
     const createdCompany = new this.CompanyModel(companyData);
     return createdCompany.save();
   }
 
-  async update(id: string, companyData: Company): Promise<Company | null> {
+  public async update(
+    id: string,
+    companyData: Company,
+  ): Promise<Company | null> {
     this.validateId(id);
     const existingCompany = await this.CompanyModel.findByIdAndUpdate(
       id,
@@ -91,7 +94,7 @@ export class CompanyService {
     return existingCompany;
   }
 
-  async delete(id: string): Promise<Company | null> {
+  public async delete(id: string): Promise<Company | null> {
     this.validateId(id);
     const deletedCompany = await this.CompanyModel.findByIdAndDelete(id).exec();
 

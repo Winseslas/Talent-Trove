@@ -9,33 +9,33 @@ import {
   Delete,
   Query,
 } from '@nestjs/common';
-import { Company } from './schemas/company.schema';
-import { UpdateCompanyDTO } from './dto/updateCompany.dto';
-import CreateCompanyDTO from './dto/createCompany.dto';
-import SearchCompanyDTO from './dto/searchCompany.dto';
+import { Company } from '../schemas/company.schema';
+import { UpdateCompanyDTO } from '../dto/company/updateCompany.dto';
+import CreateCompanyDTO from '../dto/company/createCompany.dto';
+import SearchCompanyDTO from '../dto/company/searchCompany.dto';
 
 @Controller('companies')
 export class CompanyController {
   constructor(private companyService: CompanyService) {}
 
-  @Get()
+  @Get('read-all')
   async getAllCompanies(
     @Query() query: SearchCompanyDTO,
   ): Promise<{ companies: Company[]; total: number }> {
     return this.companyService.findAll(query);
   }
 
-  @Get(':id')
+  @Get('read-one/:id')
   async getCompanyById(@Param('id') id: string): Promise<Company | null> {
     return this.companyService.findById(id);
   }
 
-  @Post()
+  @Post('create')
   async createCompany(@Body() company: CreateCompanyDTO): Promise<Company> {
     return this.companyService.create(company);
   }
 
-  @Put(':id')
+  @Put('update/:id')
   async updateCompany(
     @Param('id') id: string,
     @Body() company: UpdateCompanyDTO,
@@ -43,7 +43,7 @@ export class CompanyController {
     return this.companyService.update(id, company);
   }
 
-  @Delete(':id')
+  @Delete('delete/:id')
   async deleteCompany(@Param('id') id: string): Promise<Company | null> {
     return this.companyService.delete(id);
   }
